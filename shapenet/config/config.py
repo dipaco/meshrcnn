@@ -88,3 +88,18 @@ def get_shapenet_cfg():
     cfg.OUTPUT_DIR = "./output"
 
     return cfg
+
+# -----------------------------------------------------------------------------
+# Extended Config definition to be applied in Kostas' lab cluster
+# -----------------------------------------------------------------------------
+def get_kostas_cluster_shapenet_cfg():
+    cfg = get_shapenet_cfg()
+
+    # ------------------------------------------------------------------------ #
+    # Kostas' Lab  Cluster options
+    # ------------------------------------------------------------------------ #
+    cfg.CLUSTER = CN()
+    # Time to run before the job gets preempted from another job in the queue
+    cfg.CLUSTER.TIME_TO_RUN = 3600
+
+    return cfg
