@@ -15,7 +15,7 @@ MODEL:
     EDGE_LOSS_WEIGHT: 0.2
     ICO_SPHERE_LEVEL: 2
 DATASETS:
-  NAME: "shapenet"
+  NAME: "shapenet_5_views"
 SOLVER:
   BATCH_SIZE: 48 # 32
   BATCH_SIZE_EVAL: 8

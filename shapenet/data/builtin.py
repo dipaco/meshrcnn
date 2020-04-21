@@ -6,7 +6,8 @@ import os
 
 # each dataset contains name : (data_dir, splits_file)
 _PREDEFINED_SPLITS_SHAPENET = {
-    "shapenet": ("shapenet/ShapeNetV1processed", "shapenet/pix2mesh_splits_val05.json")
+    "shapenet": ("shapenet/ShapeNetV1processed", "shapenet/pix2mesh_splits_val05.json"),
+    "shapenet_5_views": ("shapenet/ShapeNetV1processed", "shapenet/pix2mesh_splits_val05_only_first_5_views.json")
 }
 
 
