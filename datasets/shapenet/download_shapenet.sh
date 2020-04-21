@@ -14,3 +14,6 @@ tar -xvzf ShapeNetRendering.tgz
 # downloand splits
 BASE=https://dl.fbaipublicfiles.com/meshrcnn
 wget $BASE/shapenet/pix2mesh_splits_val05.json
+
+# creates the new split using only the 5 first renders from r2n2
+python3 create_n_views_split.py 5
