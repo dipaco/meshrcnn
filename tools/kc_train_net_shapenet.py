@@ -312,7 +312,7 @@ def training_loop(cfg, csm, cp, model, optimizer, scheduler, loaders, device, lo
             # If the cluster state manager indicates that the process should end
             # we save the checkpoint and exit appropriately
             if csm.should_exit():
-                eval_and_save(model, loaders, optimizer, scheduler, cp)
+                save(model, loaders, optimizer, scheduler, cp)
 
                 # Exit with the exit code the ClusterStateManager has set for you
                 logger.info(f"Exiting with exit code {csm.get_exit_code()}")
@@ -361,6 +361,27 @@ def eval_and_save(model, loaders, optimizer, scheduler, cp):
         """
         cp.store_metric(**train_metrics)
         cp.store_metric(**test_metrics)
+        cp.store_state("model", model.state_dict())
+        cp.store_state("optim", optimizer.state_dict())
+        cp.store_state("lr_scheduler", scheduler.state_dict())
+        cp.save()
+
+    # Since evaluation and checkpointing only happens on the main process,
+    # make all processes wait
+    if comm.get_world_size() > 1:
+        dist.barrier()
+
+
+def save(model, loaders, optimizer, scheduler, cp):
+    # NOTE(gkioxari) For now only do evaluation on the main process
+    if comm.is_main_process():
+        logger.info("Saving the model.")
+        # The main process is responsible for managing the checkpoint
+        # TODO(gkioxari) revisit these stores
+        """
+        cp.store_metric(**train_preds)
+        cp.store_metric(**test_preds)
+        """
         cp.store_state("model", model.state_dict())
         cp.store_state("optim", optimizer.state_dict())
         cp.store_state("lr_scheduler", scheduler.state_dict())
