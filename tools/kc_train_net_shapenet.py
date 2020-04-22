@@ -66,9 +66,7 @@ class ClusterStateManager:
             # re-scheduled to run.
             if self.external_exit == signal.SIGTERM:
                 return 3
-
             return 0
-
         return 0
 
 def copy_data(args):
@@ -312,7 +310,7 @@ def training_loop(cfg, csm, cp, model, optimizer, scheduler, loaders, device, lo
             # If the cluster state manager indicates that the process should end
             # we save the checkpoint and exit appropriately
             if csm.should_exit():
-                save(model, loaders, optimizer, scheduler, cp)
+                save(model, optimizer, scheduler, cp)
 
                 # Exit with the exit code the ClusterStateManager has set for you
                 logger.info(f"Exiting with exit code {csm.get_exit_code()}")
@@ -372,7 +370,7 @@ def eval_and_save(model, loaders, optimizer, scheduler, cp):
         dist.barrier()
 
 
-def save(model, loaders, optimizer, scheduler, cp):
+def save(model, optimizer, scheduler, cp):
     # NOTE(gkioxari) For now only do evaluation on the main process
     if comm.is_main_process():
         logger.info("Saving the model.")
@@ -472,7 +470,16 @@ def shapenet_launch():
         return
 
     if args.num_gpus > 1:
-        mp.spawn(main_worker, nprocs=args.num_gpus, args=(args,), daemon=False)
+        # If using multiple workers we need to catch the exception that occurs when one of them exits
+        # with code 3 (cluster preemption or max. running time reached)
+        try:
+            mp.spawn(main_worker, nprocs=args.num_gpus, args=(args,), daemon=False)
+        except Exception as ex:
+            if 'terminated with exit code 3' in ex.args[0]:
+                logger.info('Process successfully exited with exit code 3 and will be rescheduled to run.')
+                sys.exit(3)
+            else:
+                raise ex
     else:
         main_worker(0, args)
 
